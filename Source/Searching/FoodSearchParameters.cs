@@ -18,8 +18,8 @@ namespace SmarterFoodSelectionSlim.Searching
         public bool AllowPlant;
         public bool AllowDrug;
         public bool AllowCorpse;
-        //public bool AllowDispenserFull;
-        //public bool AllowDispenserEmpty;
+        public bool AllowDispenserFull;
+        public bool AllowDispenserEmpty;
         public bool AllowForbidden;
         public bool AllowSociallyImproper;
         public bool AllowHarvest;
@@ -34,12 +34,12 @@ namespace SmarterFoodSelectionSlim.Searching
             bool allowPlant,
             bool allowDrug,
             bool allowCorpse,
-            //bool allowDispenserFull,
-            //bool allowDispenserEmpty,
+            bool allowDispenserFull,
+            bool allowDispenserEmpty,
             bool allowForbidden,
             bool allowSociallyImproper,
             bool allowHarvest,
-            bool forceScanWholemap)
+            bool forceScanWholeMap)
         {
             Getter = getter;
             Eater = eater;
@@ -49,12 +49,12 @@ namespace SmarterFoodSelectionSlim.Searching
             AllowPlant = allowPlant;
             AllowDrug = allowDrug;
             AllowCorpse = allowCorpse;
-            //AllowDispenserFull = allowDispenserFull;
-            //AllowDispenserEmpty = allowDispenserEmpty;
+            AllowDispenserFull = allowDispenserFull;
+            AllowDispenserEmpty = allowDispenserEmpty;
             AllowForbidden = allowForbidden;
             AllowSociallyImproper = allowSociallyImproper;
             AllowHarvest = allowHarvest;
-            ForceScanWholeMap = forceScanWholemap;
+            ForceScanWholeMap = forceScanWholeMap;
         }
     }
 }

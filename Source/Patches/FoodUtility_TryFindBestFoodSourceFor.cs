@@ -30,8 +30,21 @@ namespace SmarterFoodSelectionSlim.Patches
 #endif
             try
             {
-                var parameters = new FoodSearchParameters(getter, eater, desperate, canUseInventory, FoodPreferability.MealLavish, true, true,
-                    allowCorpse, allowForbidden, allowSociallyImproper, allowHarvest, forceScanWholeMap);
+                var parameters = new FoodSearchParameters(
+                    getter: getter,
+                    eater: eater,
+                    desperate: desperate,
+                    canUseInventory: canUseInventory,
+                    maxPref: FoodPreferability.MealLavish,
+                    allowPlant: true,
+                    allowDrug: true,
+                    allowCorpse: allowCorpse,
+                    allowDispenserFull: true,
+                    allowDispenserEmpty: true,
+                    allowForbidden: allowForbidden,
+                    allowSociallyImproper: allowSociallyImproper,
+                    allowHarvest: allowHarvest,
+                    forceScanWholeMap: forceScanWholeMap);
 
 #if DEBUG
                 var result = new FoodSearch(parameters, traceOutput).Find();
