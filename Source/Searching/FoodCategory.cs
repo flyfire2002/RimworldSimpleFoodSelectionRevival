@@ -37,10 +37,17 @@ namespace SmarterFoodSelectionSlim.Searching
 
     public static class FoodCategoryExtensions
     {
-        public static FoodCategory DetermineFoodCategory(this Thing thing) =>
-            DetermineFoodCategory(thing.def);
+        public static FoodCategory DetermineFoodCategory(this Thing thing)
+        {
+            if (thing is Building_NutrientPasteDispenser nutrientPasteDispenser)
+            {
+                return DetermineFoodCategory(nutrientPasteDispenser.DispensableDef);
+            }
 
-        public static FoodCategory DetermineFoodCategory(this ThingDef def)
+            return DetermineFoodCategory(thing.def);
+        }
+
+        private static FoodCategory DetermineFoodCategory(ThingDef def)
         {
             if (def == null)
                 throw new ArgumentNullException(nameof(def));

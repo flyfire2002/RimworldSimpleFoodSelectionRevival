@@ -8,15 +8,13 @@ namespace SmarterFoodSelectionSlim.Searching
 {
     public static class FoodCategoryCache
     {
-        public static FoodCategory GetFor(Thing thing) => GetFor(thing.def);
-
-        public static FoodCategory GetFor(ThingDef def)
+        public static FoodCategory GetFor(Thing thing)
         {
-            if (cache.ContainsKey(def))
-                return cache[def];
+            if (cache.ContainsKey(thing.def))
+                return cache[thing.def];
 
-            var category = def.DetermineFoodCategory();
-            cache.Add(def, category);
+            var category = thing.DetermineFoodCategory();
+            cache.Add(thing.def, category);
             return category;
         }
 
