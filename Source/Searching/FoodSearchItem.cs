@@ -24,5 +24,20 @@ namespace SmarterFoodSelectionSlim.Searching
         public readonly IntVec3 Position;
         public readonly int Distance;
         public FoodCategory FoodCategory;
+
+        private ThingDef def;
+        public ThingDef Def
+        {
+            get
+            {
+                if (def == null)
+                {
+                    def = RimWorld.FoodUtility.GetFinalIngestibleDef(Thing);
+                }
+                return def;
+            }
+        }
+
+        public override string ToString() => Thing?.ToString();
     }
 }

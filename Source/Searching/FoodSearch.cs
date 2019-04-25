@@ -137,19 +137,6 @@ namespace SmarterFoodSelectionSlim.Searching
             }
         }
 
-        /// <summary>
-        /// The minimal definition of what things ever count as food
-        /// </summary>
-        /// <remarks>
-        /// If an incorrect item is passed to the Ingest job, it will get caught in a failure loop. These should never be considered.
-        /// </remarks>
-        public bool IsFood(Thing thing) =>
-            thing.def.IsNutritionGivingIngestible
-            && thing.IngestibleNow
-            && FoodUtility.WillEat(parameters.Eater, thing, parameters.Getter != parameters.Eater ? parameters.Getter : null);
-
-        public static bool IsValidFoodCategory(ThingDef def) =>
-            IsValidFoodCategory(def.DetermineFoodCategory());
         public static bool IsValidFoodCategory(FoodCategory foodCategory) =>
             foodCategory != FoodCategory.Ignore && foodCategory != FoodCategory.Null;
 
@@ -166,8 +153,6 @@ namespace SmarterFoodSelectionSlim.Searching
             var getFoodsStart = DateTime.Now;
 #endif
             var result = things
-                    // Do early filtering for obvious mismatches
-                    .Where(IsFood)
                     .Select(x => new FoodSearchItem(x, startingPosition))
                     // Ignore anything not recognized as food by the categorization algorithm
                     .Where(x => IsValidFoodCategory(x.FoodCategory))
@@ -198,7 +183,7 @@ namespace SmarterFoodSelectionSlim.Searching
                 foreach (var item in foods.Where(x => group.Contains(x.FoodCategory)))
                 {
                     // Find the first valid result
-                    if (Validate(item.Thing))
+                    if (Validate(item))
                     {
 #if DEBUG
                         var searchDuration = (DateTime.Now - searchStartTime).TotalMilliseconds;
@@ -213,25 +198,38 @@ namespace SmarterFoodSelectionSlim.Searching
         }
 
         /// <summary>
-        /// Validates that the given food thing is eligible for eating in this situation
+        /// Validates that the given item is eligible for eating in this situation
         /// </summary>
         /// <remarks>
         /// Performing validation checks as late as possible maximizes optimistic performance
         /// </remarks>
-        private bool Validate(Thing thing)
+        private bool Validate(FoodSearchItem item)
         {
-            if (!parameters.AllowForbidden && thing.IsForbidden(parameters.Getter))
+            if (!parameters.AllowForbidden && item.Thing.IsForbidden(parameters.Getter))
             {
-                traceOutput?.AppendLine($"Rejecting {thing} because: is forbidden to {parameters.Getter}");
+                traceOutput?.AppendLine($"Rejecting {item} because: is forbidden to {parameters.Getter}");
+                return false;
+            }
+
+            if (!parameters.Eater.WillEat(item.Def, parameters.Getter))
+            {
+                traceOutput.AppendLine($"Rejecting thing {item.Thing} because: will not eat {item.Def}");
+                return false;
+            }
+
+            if (item.Thing.Faction != parameters.Getter.Faction
+                && item.Thing.Faction != parameters.Getter.HostFaction)
+            {
+                traceOutput.AppendLine($"Rejecting {item} because: Getter not owner or guest");
                 return false;
             }
 
             // Special plants logic
-            if (thing.def.plant != null)
+            if (item.Def.plant != null)
             {
                 if (!parameters.AllowPlant)
                 {
-                    traceOutput?.AppendLine($"Rejecting {thing} because: is plant");
+                    traceOutput?.AppendLine($"Rejecting {item.Thing} because: is plant");
                     return false;
                 }
 
@@ -243,54 +241,121 @@ namespace SmarterFoodSelectionSlim.Searching
 
                 if (parameters.Getter != parameters.Eater)
                 {
-                    traceOutput?.AppendLine($"Rejecting {thing} because: should not carry plants");
+                    traceOutput?.AppendLine($"Rejecting {item} because: should not carry plants");
                     return false;
                 }
             } // ^ plants logic
 
-            // TODO: nutrient paste dispensers
-            //var nutrientPasteDispenser = thing as Building_NutrientPasteDispenser
+            if (!ValidateDispenser(item))
+                return false;
 
-            // Only care about preferences if not desperate
-            if (!parameters.Desperate & !parameters.Eater.AnimalOrWildMan())
-            {
-                if (thing.def.ingestible.preferability > parameters.MaxPref)
-                {
-                    traceOutput?.AppendLine($"Rejecting {thing} because: preferability {thing.def.ingestible.preferability} exceeds requested maximum {parameters.MaxPref}");
-                    return false;
-                }
-
-                if (!parameters.AllowCorpse && (thing is Corpse))
-                {
-                    traceOutput?.AppendLine($"Rejecting {thing} because: is corpse");
-                    return false;
-                }
-
-                if (!parameters.AllowDrug && thing.def.IsDrug)
-                {
-                    traceOutput?.AppendLine($"Rejecting {thing} because: is drug");
-                    return false;
-                }
-
-                if (!parameters.AllowSociallyImproper && !thing.IsSociallyProper(parameters.Eater))
-                {
-                    traceOutput?.AppendLine($"Rejecting {thing} because: is not socially proper");
-                    return false;
-                }
-
-                var thoughtsFromConsuming = FoodUtility.ThoughtsFromIngesting(parameters.Eater, thing, thing.def);
-                var desperateThoughtFromConsuming = thoughtsFromConsuming.FirstOrDefault(DesperateOnlyThoughts.Contains);
-                if (desperateThoughtFromConsuming != null)
-                {
-                    traceOutput?.AppendLine($"Rejecting {thing} because: would cause desperate thought {desperateThoughtFromConsuming}");
-                    return false;
-                }
-            } // ^ if not desperate or animalistic
+            if (!ValidateFoodPreferences(item))
+                return false;
 
             // Potentially expensive path canculation last
-            if (!parameters.Getter.CanReach(new LocalTargetInfo(thing.Position), Verse.AI.PathEndMode.Touch, Danger.Unspecified, parameters.Desperate))
+            if (!parameters.Getter.CanReach(new LocalTargetInfo(item.Thing.Position), Verse.AI.PathEndMode.InteractionCell, Danger.Unspecified, parameters.Desperate))
             {
-                traceOutput?.AppendLine($"Rejecting {thing} because: {parameters.Getter} cannot reach");
+                traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot reach");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// If the provided thing is a food dispenser, performs validation on the dispenser and the dispensed food
+        /// </summary>
+        private bool ValidateDispenser(FoodSearchItem item)
+        {
+            var nutrientPasteDispenser = item.Thing as Building_NutrientPasteDispenser;
+            if (nutrientPasteDispenser == null)
+                return true;
+
+
+            Mod.LogMessage($"Thing {item.Thing} ({item.Def}) is nutrient paste dispenser");
+            // Vanilla disallow logic:
+            // !allowDispenserFull
+            // || !getterCanManipulate 
+            // || (ThingDefOf.MealNutrientPaste.ingestible.preferability < minPref 
+            //     || ThingDefOf.MealNutrientPaste.ingestible.preferability > maxPref) 
+            // || (!eater.WillEat(ThingDefOf.MealNutrientPaste, getter) 
+            //     || t.Faction != getter.Faction 
+            //     && t.Faction != getter.HostFaction) 
+            // || (!allowForbidden && t.IsForbidden(getter) 
+            //     || !nutrientPasteDispenser.powerComp.PowerOn 
+            //     || (!allowDispenserEmpty 
+            //         && !nutrientPasteDispenser.HasEnoughFeedstockInHoppers() 
+            //         || (!t.InteractionCell.Standable(t.Map) 
+            //             || !FoodUtility.IsFoodSourceOnMapSociallyProper(t, getter, eater, allowSociallyImproper)))) 
+            // || (getter.IsWildMan() 
+            //     || !getter.Map.reachability.CanReachNonLocal(getter.Position, new TargetInfo(t.InteractionCell, t.Map, false), PathEndMode.OnCell, TraverseParms.For(getter, Danger.Some, TraverseMode.ByPawn, false)))
+
+            if (!parameters.AllowDispenserFull)
+            {
+                traceOutput.AppendLine($"Rejecting {item} because: search requested no dispensers");
+                return false;
+            }
+
+            if (!parameters.Getter.CanManipulate())
+            {
+                traceOutput.AppendLine($"Rejecting {item} because: getter cannot manipulate dispenser");
+                return false;
+            }
+
+            if (!nutrientPasteDispenser.CanDispenseNow)
+            {
+                traceOutput.AppendLine($"Rejecting {item} because: dispenser cannot dispense now");
+                return false;
+            }
+
+            if (!item.Thing.InteractionCell.Standable(item.Thing.Map))
+            {
+                traceOutput.AppendLine($"Rejecting {item} because: interaction cell not standable");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Validates the food against the request and eater preferences, if applicable
+        /// </summary>
+        private bool ValidateFoodPreferences(FoodSearchItem item)
+        {
+            // Only care about preferences if not desperate
+            if (parameters.Desperate || parameters.Eater.AnimalOrWildMan())
+                return true;
+
+
+            if (item.Def.ingestible.preferability > parameters.MaxPref)
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: preferability {item.Def.ingestible.preferability} exceeds requested maximum {parameters.MaxPref}");
+                return false;
+            }
+
+            if (!parameters.AllowCorpse && (item.Thing is Corpse))
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: is corpse");
+                return false;
+            }
+
+            if (!parameters.AllowDrug && item.Def.IsDrug)
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: is drug");
+                return false;
+            }
+
+            if (!parameters.AllowSociallyImproper && !item.Thing.IsSociallyProper(parameters.Eater))
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: is not socially proper");
+                return false;
+            }
+
+            var thoughtsFromConsuming = FoodUtility.ThoughtsFromIngesting(parameters.Eater, item.Thing, item.Def);
+            var desperateThoughtFromConsuming = thoughtsFromConsuming.FirstOrDefault(DesperateOnlyThoughts.Contains);
+            if (desperateThoughtFromConsuming != null)
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: would cause desperate thought {desperateThoughtFromConsuming}");
                 return false;
             }
 
