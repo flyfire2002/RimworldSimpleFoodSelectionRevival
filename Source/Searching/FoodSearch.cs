@@ -217,13 +217,6 @@ namespace SmarterFoodSelectionSlim.Searching
                 return false;
             }
 
-            if (item.Thing.Faction != parameters.Getter.Faction
-                && item.Thing.Faction != parameters.Getter.HostFaction)
-            {
-                traceOutput.AppendLine($"Rejecting {item} because: {parameters.Getter} not owner or guest");
-                return false;
-            }
-
             // Special plants logic
             if (item.Def.plant != null)
             {
@@ -330,6 +323,13 @@ namespace SmarterFoodSelectionSlim.Searching
             if (item.Def.ingestible.preferability > parameters.MaxPref)
             {
                 traceOutput?.AppendLine($"Rejecting {item} because: preferability {item.Def.ingestible.preferability} exceeds requested maximum {parameters.MaxPref}");
+                return false;
+            }
+
+            if (item.Thing.Faction != parameters.Getter.Faction
+                && item.Thing.Faction != parameters.Getter.HostFaction)
+            {
+                traceOutput.AppendLine($"Rejecting {item} because: {parameters.Getter} not owner or guest");
                 return false;
             }
 
