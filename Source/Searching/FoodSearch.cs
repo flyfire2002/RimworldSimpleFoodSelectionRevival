@@ -187,7 +187,7 @@ namespace SmarterFoodSelectionSlim.Searching
                     {
 #if DEBUG
                         var searchDuration = (DateTime.Now - searchStartTime).TotalMilliseconds;
-                        traceOutput?.AppendLine($"Selecting food item {item.Thing} from category {item.FoodCategory} - search took {searchDuration}ms");
+                        traceOutput?.AppendLine($"Selecting food item {item} from category {item.FoodCategory} - search took {searchDuration}ms");
 #endif
                         return item.Thing;
                     }
@@ -213,14 +213,14 @@ namespace SmarterFoodSelectionSlim.Searching
 
             if (!parameters.Eater.WillEat(item.Def, parameters.Getter))
             {
-                traceOutput.AppendLine($"Rejecting thing {item.Thing} because: will not eat {item.Def}");
+                traceOutput.AppendLine($"Rejecting item {item} because: {parameters.Getter} will not eat def {item.Def}");
                 return false;
             }
 
             if (item.Thing.Faction != parameters.Getter.Faction
                 && item.Thing.Faction != parameters.Getter.HostFaction)
             {
-                traceOutput.AppendLine($"Rejecting {item} because: Getter not owner or guest");
+                traceOutput.AppendLine($"Rejecting {item} because: {parameters.Getter} not owner or guest");
                 return false;
             }
 
@@ -229,7 +229,7 @@ namespace SmarterFoodSelectionSlim.Searching
             {
                 if (!parameters.AllowPlant)
                 {
-                    traceOutput?.AppendLine($"Rejecting {item.Thing} because: is plant");
+                    traceOutput?.AppendLine($"Rejecting {item} because: is plant");
                     return false;
                 }
 
@@ -241,7 +241,7 @@ namespace SmarterFoodSelectionSlim.Searching
 
                 if (parameters.Getter != parameters.Eater)
                 {
-                    traceOutput?.AppendLine($"Rejecting {item} because: should not carry plants");
+                    traceOutput?.AppendLine($"Rejecting {item} because: pawns should not carry plants");
                     return false;
                 }
             } // ^ plants logic
@@ -272,7 +272,7 @@ namespace SmarterFoodSelectionSlim.Searching
                 return true;
 
 
-            Mod.LogMessage($"Thing {item.Thing} ({item.Def}) is nutrient paste dispenser");
+            Mod.LogMessage($"{item} is nutrient paste dispenser");
             // Vanilla disallow logic:
             // !allowDispenserFull
             // || !getterCanManipulate 
@@ -298,7 +298,7 @@ namespace SmarterFoodSelectionSlim.Searching
 
             if (!parameters.Getter.CanManipulate())
             {
-                traceOutput.AppendLine($"Rejecting {item} because: getter cannot manipulate dispenser");
+                traceOutput.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot manipulate dispenser");
                 return false;
             }
 
@@ -347,7 +347,7 @@ namespace SmarterFoodSelectionSlim.Searching
 
             if (!parameters.AllowSociallyImproper && !item.Thing.IsSociallyProper(parameters.Eater))
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: is not socially proper");
+                traceOutput?.AppendLine($"Rejecting {item} because: is not socially proper for {parameters.Eater}");
                 return false;
             }
 

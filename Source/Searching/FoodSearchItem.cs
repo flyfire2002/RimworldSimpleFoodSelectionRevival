@@ -38,6 +38,6 @@ namespace SmarterFoodSelectionSlim.Searching
             }
         }
 
-        public override string ToString() => Thing?.ToString();
+        public override string ToString() => $"{Thing} ({Def})";
     }
 }
