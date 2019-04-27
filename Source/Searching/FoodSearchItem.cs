@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,10 +15,10 @@ namespace SmarterFoodSelectionSlim.Searching
             FoodCategory = FoodCategoryCache.GetFor(thing);
         }
 
-        public FoodSearchItem(Thing thing, IntVec3 position) : this(thing)
+        public FoodSearchItem(Thing thing, IntVec3 searchingFrom) : this(thing)
         {
-            Position = position;
-            Distance = (position - thing.Position).LengthManhattan;
+            Position = GetThingPosition(thing);
+            Distance = (searchingFrom - thing.Position).LengthManhattan;
         }
 
         public readonly Thing Thing;
@@ -36,6 +37,19 @@ namespace SmarterFoodSelectionSlim.Searching
                 }
                 return def;
             }
+        }
+
+        /// <summary>
+        /// What cell to use as a thing's position, for both distance and reachability calculations
+        /// </summary>
+        private IntVec3 GetThingPosition(Thing thing)
+        {
+            if (thing is Building_NutrientPasteDispenser)
+            {
+                return Thing.InteractionCell;
+            }
+
+            return Thing.Position;
         }
 
         public override string ToString() => $"{Thing} ({Def})";

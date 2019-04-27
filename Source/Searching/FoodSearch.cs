@@ -254,7 +254,7 @@ namespace SmarterFoodSelectionSlim.Searching
                 return false;
 
             // Potentially expensive path canculation last
-            if (!parameters.Getter.CanReach(new LocalTargetInfo(item.Thing.Position), Verse.AI.PathEndMode.Touch, Danger.Unspecified, parameters.Desperate))
+            if (!parameters.Getter.CanReach(new LocalTargetInfo(item.Position), Verse.AI.PathEndMode.OnCell, Danger.Unspecified, parameters.Desperate))
             {
                 traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot reach");
                 return false;
@@ -312,12 +312,6 @@ namespace SmarterFoodSelectionSlim.Searching
             if (!item.Thing.InteractionCell.Standable(item.Thing.Map))
             {
                 traceOutput.AppendLine($"Rejecting {item} because: interaction cell not standable");
-                return false;
-            }
-
-            if (!parameters.Getter.Map.reachability.CanReachNonLocal(parameters.Getter.Position, new TargetInfo(item.Thing.InteractionCell, item.Thing.Map), PathEndMode.OnCell, TraverseParms.For(parameters.Getter, Danger.Some, TraverseMode.ByPawn, false)))
-            {
-                traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot reach interaction cell");
                 return false;
             }
 
