@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Verse;
+using Verse.AI;
 
 namespace SmarterFoodSelectionSlim.Searching
 {
@@ -217,6 +218,13 @@ namespace SmarterFoodSelectionSlim.Searching
                 return false;
             }
 
+            if (item.FoodCategory == FoodCategory.Hunt 
+                && item.Thing.Faction == parameters.Eater.Faction)
+            {
+                traceOutput.AppendLine($"Rejecting {item} because: Should not hunt own faction");
+                return false;
+            }
+
             // Special plants logic
             if (item.Def.plant != null)
             {
@@ -246,7 +254,7 @@ namespace SmarterFoodSelectionSlim.Searching
                 return false;
 
             // Potentially expensive path canculation last
-            if (!parameters.Getter.CanReach(new LocalTargetInfo(item.Thing.Position), Verse.AI.PathEndMode.InteractionCell, Danger.Unspecified, parameters.Desperate))
+            if (!parameters.Getter.CanReach(new LocalTargetInfo(item.Thing.Position), Verse.AI.PathEndMode.Touch, Danger.Unspecified, parameters.Desperate))
             {
                 traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot reach");
                 return false;
@@ -265,7 +273,7 @@ namespace SmarterFoodSelectionSlim.Searching
                 return true;
 
 
-            Mod.LogMessage($"{item} is nutrient paste dispenser");
+            Mod.LogMessage($"Thing {item.Thing} ({item.Def}) is nutrient paste dispenser dispensing {nutrientPasteDispenser.DispensableDef}");
             // Vanilla disallow logic:
             // !allowDispenserFull
             // || !getterCanManipulate 
@@ -307,6 +315,12 @@ namespace SmarterFoodSelectionSlim.Searching
                 return false;
             }
 
+            if (!parameters.Getter.Map.reachability.CanReachNonLocal(parameters.Getter.Position, new TargetInfo(item.Thing.InteractionCell, item.Thing.Map), PathEndMode.OnCell, TraverseParms.For(parameters.Getter, Danger.Some, TraverseMode.ByPawn, false)))
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot reach interaction cell");
+                return false;
+            }
+
             return true;
         }
 
@@ -316,7 +330,7 @@ namespace SmarterFoodSelectionSlim.Searching
         private bool ValidateFoodPreferences(FoodSearchItem item)
         {
             // Only care about preferences if not desperate
-            if (parameters.Desperate || parameters.Eater.AnimalOrWildMan())
+            if (parameters.Desperate || parameters.Eater.IsWildAnimal() || parameters.Eater.IsWildMan())
                 return true;
 
 
