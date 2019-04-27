@@ -73,13 +73,13 @@ namespace SmarterFoodSelectionSlim.Searching
 
                 var startingPosition = (parameters.Getter ?? parameters.Eater).Position;
 
-                var foods = GetFoods(mapThings, startingPosition);
+                var mapFoods = GetFoods(mapThings, startingPosition);
 
-                traceOutput?.AppendLine($"Found {foods.Count} foods on map: {string.Join(TraceDelimiter, foods.Take(50).Select(x => x.Thing.Label).ToArray())}");
+                traceOutput?.AppendLine($"Found {mapFoods.Count} foods on map: {string.Join(TraceDelimiter, mapFoods.Take(50).Select(x => x.Thing.Label).ToArray())}");
 
                 // Search nearby first to maximize performance, assume that most searches will succeed here
                 // As a side effect, pawns will prefer a simple meal nearby over a lavish meal on the other side of the map
-                var nearbyFoods = foods
+                var nearbyFoods = mapFoods
                     .Where(x => x.Distance <= NearbySearchRadius)
                     .ToArray();
                 var nearbyResult = SearchFoods(nearbyFoods, profile.Good);
@@ -87,7 +87,7 @@ namespace SmarterFoodSelectionSlim.Searching
                     return new FoodSearchResult { Success = true, Thing = nearbyResult };
 
                 // If nothing nearby, expand search radius to entire map
-                var farawayFoods = foods
+                var farawayFoods = mapFoods
                     .Where(x => x.Distance > NearbySearchRadius)
                     .ToArray();
                 var farawayResult = SearchFoods(farawayFoods, profile.Good);
@@ -106,7 +106,7 @@ namespace SmarterFoodSelectionSlim.Searching
                 if (badInventoryResult != null)
                     return new FoodSearchResult { Success = true, Thing = badInventoryResult };
 
-                var badMapResult = SearchFoods(foods, profile.Bad);
+                var badMapResult = SearchFoods(mapFoods, profile.Bad);
                 if (badMapResult != null)
                     return new FoodSearchResult { Success = true, Thing = badMapResult };
 
@@ -124,7 +124,7 @@ namespace SmarterFoodSelectionSlim.Searching
                 if (desperateInventoryResult != null)
                     return new FoodSearchResult { Success = true, Thing = desperateInventoryResult };
 
-                var desperateMapResult = SearchFoods(foods, profile.Desperate);
+                var desperateMapResult = SearchFoods(mapFoods, profile.Desperate);
                 if (desperateMapResult != null)
                     return new FoodSearchResult { Success = true, Thing = desperateMapResult };
 
@@ -150,19 +150,18 @@ namespace SmarterFoodSelectionSlim.Searching
         /// </summary>
         private IList<FoodSearchItem> GetFoods(IList<Thing> things, IntVec3 startingPosition)
         {
-#if DEBUG
             var getFoodsStart = DateTime.Now;
-#endif
+
             var result = things
                     .Select(x => new FoodSearchItem(x, startingPosition))
                     // Ignore anything not recognized as food by the categorization algorithm
                     .Where(x => IsValidFoodCategory(x.FoodCategory))
                     .OrderBy(x => x.Distance)
                     .ToArray();
-#if DEBUG
+
             var getFoodsDuration = (DateTime.Now - getFoodsStart).TotalMilliseconds;
-            traceOutput.AppendLine($"GetFoods filter took {getFoodsDuration}ms for {result.Length} items at {getFoodsDuration/result.Length}ms/item");
-#endif
+            traceOutput?.AppendLine($"GetFoods filter took {getFoodsDuration}ms for {result.Length} items at {getFoodsDuration/result.Length}ms/item");
+
             return result;
         }
 
@@ -171,9 +170,8 @@ namespace SmarterFoodSelectionSlim.Searching
         /// </summary>
         private Thing SearchFoods(IList<FoodSearchItem> foods, IList<IList<FoodCategory>> categories)
         {
-#if DEBUG
             var searchStartTime = DateTime.Now;
-#endif
+
             if (!foods.Any())
                 return null;
 
@@ -186,10 +184,9 @@ namespace SmarterFoodSelectionSlim.Searching
                     // Find the first valid result
                     if (Validate(item))
                     {
-#if DEBUG
                         var searchDuration = (DateTime.Now - searchStartTime).TotalMilliseconds;
                         traceOutput?.AppendLine($"Selecting food item {item} from category {item.FoodCategory} - search took {searchDuration}ms");
-#endif
+
                         return item.Thing;
                     }
                 }
@@ -214,14 +211,7 @@ namespace SmarterFoodSelectionSlim.Searching
 
             if (!parameters.Eater.WillEat(item.Def, parameters.Getter))
             {
-                traceOutput.AppendLine($"Rejecting item {item} because: {parameters.Getter} will not eat def {item.Def}");
-                return false;
-            }
-
-            if (item.FoodCategory == FoodCategory.Hunt 
-                && item.Thing.Faction == parameters.Eater.Faction)
-            {
-                traceOutput.AppendLine($"Rejecting {item} because: Should not hunt own faction");
+                traceOutput?.AppendLine($"Rejecting item {item} because: {parameters.Getter} will not eat def {item.Def}");
                 return false;
             }
 
@@ -293,25 +283,25 @@ namespace SmarterFoodSelectionSlim.Searching
 
             if (!parameters.AllowDispenserFull)
             {
-                traceOutput.AppendLine($"Rejecting {item} because: search requested no dispensers");
+                traceOutput?.AppendLine($"Rejecting {item} because: search requested no dispensers");
                 return false;
             }
 
             if (!parameters.Getter.CanManipulate())
             {
-                traceOutput.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot manipulate dispenser");
+                traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot manipulate dispenser");
                 return false;
             }
 
             if (!nutrientPasteDispenser.CanDispenseNow)
             {
-                traceOutput.AppendLine($"Rejecting {item} because: dispenser cannot dispense now");
+                traceOutput?.AppendLine($"Rejecting {item} because: dispenser cannot dispense now");
                 return false;
             }
 
             if (!item.Thing.InteractionCell.Standable(item.Thing.Map))
             {
-                traceOutput.AppendLine($"Rejecting {item} because: interaction cell not standable");
+                traceOutput?.AppendLine($"Rejecting {item} because: interaction cell not standable");
                 return false;
             }
 
@@ -328,6 +318,12 @@ namespace SmarterFoodSelectionSlim.Searching
                 return true;
 
 
+            if (item.FoodCategory == FoodCategory.Hunt && item.Thing.Faction != null)
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: tame should not hunt faction pawns");
+                return false;
+            }
+
             if (item.Def.ingestible.preferability > parameters.MaxPref)
             {
                 traceOutput?.AppendLine($"Rejecting {item} because: preferability {item.Def.ingestible.preferability} exceeds requested maximum {parameters.MaxPref}");
@@ -337,7 +333,7 @@ namespace SmarterFoodSelectionSlim.Searching
             if (item.Thing.Faction != parameters.Getter.Faction
                 && item.Thing.Faction != parameters.Getter.HostFaction)
             {
-                traceOutput.AppendLine($"Rejecting {item} because: {parameters.Getter} not owner or guest");
+                traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} not owner or guest");
                 return false;
             }
 
