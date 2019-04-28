@@ -33,7 +33,7 @@ namespace SmarterFoodSelectionSlim.Searching
             {
                 if (def == null)
                 {
-                    def = RimWorld.FoodUtility.GetFinalIngestibleDef(Thing);
+                    def = RimWorld.FoodUtility.GetFinalIngestibleDef(Thing, false);
                 }
                 return def;
             }
@@ -52,6 +52,6 @@ namespace SmarterFoodSelectionSlim.Searching
             return Thing.Position;
         }
 
-        public override string ToString() => $"{Thing} ({Def})";
+        public override string ToString() => $"{Thing} ({Def}|{FoodCategory})";
     }
 }

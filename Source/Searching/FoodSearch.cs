@@ -75,10 +75,11 @@ namespace SmarterFoodSelectionSlim.Searching
 
                 var mapFoods = GetFoods(mapThings, startingPosition);
 
-                traceOutput?.AppendLine($"Found {mapFoods.Count} foods on map: {string.Join(TraceDelimiter, mapFoods.Take(50).Select(x => x.Thing.Label).ToArray())}");
+                traceOutput?.AppendLine($"Found {mapFoods.Count} foods on map: {string.Join(TraceDelimiter, mapFoods.Take(50).Select(x => x.ToString()).ToArray())}");
 
                 // Search nearby first to maximize performance, assume that most searches will succeed here
                 // As a side effect, pawns will prefer a simple meal nearby over a lavish meal on the other side of the map
+                traceOutput?.AppendLine("Searching nearby map foods...");
                 var nearbyFoods = mapFoods
                     .Where(x => x.Distance <= NearbySearchRadius)
                     .ToArray();
@@ -87,6 +88,7 @@ namespace SmarterFoodSelectionSlim.Searching
                     return new FoodSearchResult { Success = true, Thing = nearbyResult };
 
                 // If nothing nearby, expand search radius to entire map
+                traceOutput?.AppendLine("Searching faraway map foods...");
                 var farawayFoods = mapFoods
                     .Where(x => x.Distance > NearbySearchRadius)
                     .ToArray();
@@ -179,6 +181,7 @@ namespace SmarterFoodSelectionSlim.Searching
             foreach (var group in categories)
             {
                 // Iterate through matched foods in order of distance
+                traceOutput?.AppendLine("Searching for " + string.Join("|", group.Select(x => x.ToString()).ToArray()));
                 foreach (var item in foods.Where(x => group.Contains(x.FoodCategory)))
                 {
                     // Find the first valid result
@@ -209,33 +212,30 @@ namespace SmarterFoodSelectionSlim.Searching
                 return false;
             }
 
-            if (!parameters.Eater.WillEat(item.Def, parameters.Getter))
+            if (!item.Thing.IngestibleNow)
             {
-                traceOutput?.AppendLine($"Rejecting item {item} because: {parameters.Getter} will not eat def {item.Def}");
+                traceOutput?.AppendLine($"Rejecting item {item} because: is not ingestible now");
                 return false;
             }
 
-            // Special plants logic
-            if (item.Def.plant != null)
+            if (!parameters.Eater.WillEat(item.Def, parameters.Getter))
             {
-                if (!parameters.AllowPlant)
+                traceOutput?.AppendLine($"Rejecting item {item} because: {parameters.Eater} will not eat def {item.Def}");
+                return false;
+            }
+
+            if (item.FoodCategory == FoodCategory.Hunt)
+            {
+                if (parameters.Getter.Faction != null
+                    && item.Thing.Faction != null)
                 {
-                    traceOutput?.AppendLine($"Rejecting {item} because: is plant");
+                    traceOutput?.AppendLine($"Rejecting item {item} because: faction {parameters.Getter.Faction} will not hunt faction {item.Thing.Faction}");
                     return false;
                 }
+            }
 
-                // TODO: harvestable plants
-                //if (parameters.AllowHarvest && thing.def.plant != null && thing is Plant plant && plant.HarvestableNow)
-                //{
-                //    var harvestedThingDef = thing.def.plant.harvestedThingDef;
-                //}
-
-                if (parameters.Getter != parameters.Eater)
-                {
-                    traceOutput?.AppendLine($"Rejecting {item} because: pawns should not carry plants");
-                    return false;
-                }
-            } // ^ plants logic
+            if (!ValidatePlant(item))
+                return false;
 
             if (!ValidateDispenser(item))
                 return false;
@@ -254,6 +254,58 @@ namespace SmarterFoodSelectionSlim.Searching
         }
 
         /// <summary>
+        /// If item is a plant, do special plant validation logic
+        /// </summary>
+        private bool ValidatePlant(FoodSearchItem item)
+        {
+            if (item.Def.plant == null)
+                return true;
+
+            var plant = item.Thing as Plant;
+            if (plant == null)
+                return true;
+
+
+            if (!parameters.AllowPlant)
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: is plant");
+                return false;
+            }
+
+            // TODO: harvestable plants
+            if (parameters.AllowHarvest 
+                && plant.HarvestableNow
+                && item.Def.plant.harvestedThingDef.IsIngestible)
+            {
+                traceOutput?.AppendLine("TODO: harvest plant?");
+                // var harvestedThingDef = thing.def.plant.harvestedThingDef;
+
+                // Vanilla harvest logic?
+                //Thing foodSource = GenClosest.ClosestThingReachable(getter.Position, getter.Map, ThingRequest.ForGroup(ThingRequestGroup.HarvestablePlant), PathEndMode.Touch, TraverseParms.For(getter, Danger.Deadly, TraverseMode.ByPawn, false), 9999f, (Predicate<Thing>)(x =>
+                //{
+                //    Plant t = (Plant)x;
+                //    if (!t.HarvestableNow)
+                //        return false;
+                //    ThingDef harvestedThingDef = t.def.plant.harvestedThingDef;
+                //    return harvestedThingDef.IsNutritionGivingIngestible && eater.WillEat(harvestedThingDef, getter) && getter.CanReserve((LocalTargetInfo)((Thing)t), 1, -1, (ReservationLayerDef)null, false) && ((allowForbidden || !t.IsForbidden(getter)) && (bestThing == null || FoodUtility.GetFinalIngestibleDef(bestThing, false).ingestible.preferability < harvestedThingDef.ingestible.preferability));
+                //}), (IEnumerable<Thing>)null, 0, searchRegionsMax, false, RegionType.Set_Passable, false);
+                //if (foodSource != null)
+                //{
+                //    bestThing = foodSource;
+                //    foodDef = FoodUtility.GetFinalIngestibleDef(foodSource, true);
+                //}
+            }
+
+            if (parameters.Getter != parameters.Eater)
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: pawns should not carry plants");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// If the provided thing is a food dispenser, performs validation on the dispenser and the dispensed food
         /// </summary>
         private bool ValidateDispenser(FoodSearchItem item)
@@ -263,7 +315,6 @@ namespace SmarterFoodSelectionSlim.Searching
                 return true;
 
 
-            Mod.LogMessage($"Thing {item.Thing} ({item.Def}) is nutrient paste dispenser dispensing {nutrientPasteDispenser.DispensableDef}");
             // Vanilla disallow logic:
             // !allowDispenserFull
             // || !getterCanManipulate 
@@ -299,9 +350,9 @@ namespace SmarterFoodSelectionSlim.Searching
                 return false;
             }
 
-            if (!item.Thing.InteractionCell.Standable(item.Thing.Map))
+            if (!nutrientPasteDispenser.InteractionCell.Standable(item.Thing.Map))
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: interaction cell not standable");
+                traceOutput?.AppendLine($"Rejecting {item} because: dispenser interaction cell not standable");
                 return false;
             }
 
@@ -313,16 +364,10 @@ namespace SmarterFoodSelectionSlim.Searching
         /// </summary>
         private bool ValidateFoodPreferences(FoodSearchItem item)
         {
-            // Only care about preferences if not desperate
+            // Only care about preferences at all if not desperate or animalistic
             if (parameters.Desperate || parameters.Eater.IsWildAnimal() || parameters.Eater.IsWildMan())
                 return true;
 
-
-            if (item.FoodCategory == FoodCategory.Hunt && item.Thing.Faction != null)
-            {
-                traceOutput?.AppendLine($"Rejecting {item} because: tame should not hunt faction pawns");
-                return false;
-            }
 
             if (item.Def.ingestible.preferability > parameters.MaxPref)
             {
@@ -355,6 +400,13 @@ namespace SmarterFoodSelectionSlim.Searching
                 return false;
             }
 
+
+            // Animals don't have thoughts (fixing null bug in alien framework patch intercepting pets)
+            if (parameters.Eater.IsAnimal())
+                return true;
+
+
+            traceOutput?.AppendLine($"Considering thoughts from {parameters.Eater} ingesting {item}");
             var thoughtsFromConsuming = FoodUtility.ThoughtsFromIngesting(parameters.Eater, item.Thing, item.Def);
             var desperateThoughtFromConsuming = thoughtsFromConsuming.FirstOrDefault(DesperateOnlyThoughts.Contains);
             if (desperateThoughtFromConsuming != null)

@@ -52,23 +52,20 @@ namespace SmarterFoodSelectionSlim.Searching
             if (def == null)
                 throw new ArgumentNullException(nameof(def));
 
-            if (def == ThingDefOf.NutrientPasteDispenser)
-                return FoodCategory.MealAwful;
-
             // List all foods with a race as huntable
             if (def.race != null)
                 return FoodCategory.Hunt;
 
             if (def.ingestible != null)
             {
+                // If food has no nutritional value or is a drug ignore it
+                if (def.ingestible.CachedNutrition <= 0f || def.IsDrug)
+                    return FoodCategory.Ignore;
+
                 FoodPreferability foodPref = def.ingestible.preferability;
                 FoodTypeFlags foodType = def.ingestible.foodType;
 
-                if (foodPref == FoodPreferability.NeverForNutrition || def.IsDrug)
-                    return FoodCategory.Ignore;
-
-                //if food has no nutritional value or is a drug ignore it
-                if (def.ingestible.CachedNutrition <= 0f || def.IsDrug)
+                if (foodPref == FoodPreferability.NeverForNutrition)
                     return FoodCategory.Ignore;
 
                 if (foodPref == FoodPreferability.MealFine)
@@ -95,6 +92,8 @@ namespace SmarterFoodSelectionSlim.Searching
                 {
                     if (def.GetCompProperties<CompProperties_Hatcher>() != null)
                         return FoodCategory.FertEggs;
+
+                    return FoodCategory.AnimalProduct;
                 }
 
                 if (def.ingestible.joyKind == JoyKindDefOf.Gluttonous && def.ingestible.joy >= 0.05f)
@@ -108,10 +107,10 @@ namespace SmarterFoodSelectionSlim.Searching
                     if (def == ThingDefOf.Hay)
                         return FoodCategory.Hay;
 
-                    if (def.plant != null)
+                    if (def.plant != null && !def.plant.sowTags.NullOrEmpty())
                         return FoodCategory.Plant;
 
-                    if (def.thingCategories.Contains(ThingCategoryDefOf.PlantMatter))
+                    if (def.thingCategories?.Contains(ThingCategoryDefOf.PlantMatter) ?? false)
                         return FoodCategory.PlantMatter;
 
                     if (foodPref == FoodPreferability.DesperateOnly)
@@ -147,9 +146,6 @@ namespace SmarterFoodSelectionSlim.Searching
 
                 if ((def.ingestible.tasteThought == null || def.ingestible.tasteThought.stages.All((ThoughtStage arg) => arg.baseMoodEffect >= 0)))
                     return FoodCategory.RawTasty;
-
-                if ((foodType & FoodTypeFlags.AnimalProduct) != 0)
-                    return FoodCategory.AnimalProduct;
             }
 
             // non ingestible corpse ?
