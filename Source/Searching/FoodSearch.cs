@@ -156,8 +156,8 @@ namespace SmarterFoodSelectionSlim.Searching
 
             var result = things
                     .Select(x => new FoodSearchItem(x, startingPosition))
-                    // Ignore anything not recognized as food by the categorization algorithm
-                    .Where(x => IsValidFoodCategory(x.FoodCategory))
+                    // Ignore anything non-ingestible to avoid having to sort
+                    .Where(x => x.IsIngestibleNow())
                     .OrderBy(x => x.Distance)
                     .ToArray();
 
@@ -207,12 +207,6 @@ namespace SmarterFoodSelectionSlim.Searching
         /// </remarks>
         private bool Validate(FoodSearchItem item)
         {
-            if (!item.Thing.IngestibleNow)
-            {
-                traceOutput?.AppendLine($"Rejecting item {item} because: is not ingestible now");
-                return false;
-            }
-
             if (!parameters.AllowForbidden && item.Thing.IsForbidden(parameters.Getter))
             {
                 traceOutput?.AppendLine($"Rejecting {item} because: is forbidden to {parameters.Getter}");

@@ -40,6 +40,27 @@ namespace SmarterFoodSelectionSlim.Searching
         }
 
         /// <summary>
+        /// Whether the item is ever a valid food, regardless of eater or getter or other circumstances
+        /// </summary>
+        public bool IsIngestibleNow()
+        {
+            if (FoodCategory == FoodCategory.Null
+                || FoodCategory == FoodCategory.Ignore)
+            {
+                // Excluded by categorization algorithm
+                return false;
+            }
+
+            if (Thing is Building_NutrientPasteDispenser)
+            {
+                // Need to do further checks which may not be necessary if better food is available
+                return true;
+            }
+
+            return Thing.IngestibleNow;
+        }
+
+        /// <summary>
         /// What cell to use as a thing's position, for both distance and reachability calculations
         /// </summary>
         private IntVec3 GetThingPosition(Thing thing)
