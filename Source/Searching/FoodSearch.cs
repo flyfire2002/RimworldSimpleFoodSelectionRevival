@@ -178,6 +178,7 @@ namespace SmarterFoodSelectionSlim.Searching
                 return null;
 
             // Iterate through categories in order of preference
+            // TODO: optimize search loops
             foreach (var group in categories)
             {
                 // Iterate through matched foods in order of distance
@@ -206,15 +207,15 @@ namespace SmarterFoodSelectionSlim.Searching
         /// </remarks>
         private bool Validate(FoodSearchItem item)
         {
-            if (!parameters.AllowForbidden && item.Thing.IsForbidden(parameters.Getter))
-            {
-                traceOutput?.AppendLine($"Rejecting {item} because: is forbidden to {parameters.Getter}");
-                return false;
-            }
-
             if (!item.Thing.IngestibleNow)
             {
                 traceOutput?.AppendLine($"Rejecting item {item} because: is not ingestible now");
+                return false;
+            }
+
+            if (!parameters.AllowForbidden && item.Thing.IsForbidden(parameters.Getter))
+            {
+                traceOutput?.AppendLine($"Rejecting {item} because: is forbidden to {parameters.Getter}");
                 return false;
             }
 
@@ -224,15 +225,8 @@ namespace SmarterFoodSelectionSlim.Searching
                 return false;
             }
 
-            if (item.FoodCategory == FoodCategory.Hunt)
-            {
-                if (parameters.Getter.Faction != null
-                    && item.Thing.Faction != null)
-                {
-                    traceOutput?.AppendLine($"Rejecting item {item} because: faction {parameters.Getter.Faction} will not hunt faction {item.Thing.Faction}");
-                    return false;
-                }
-            }
+            if (!ValidateHunt(item))
+                return false;
 
             if (!ValidatePlant(item))
                 return false;
@@ -240,7 +234,7 @@ namespace SmarterFoodSelectionSlim.Searching
             if (!ValidateDispenser(item))
                 return false;
 
-            if (!ValidateFoodPreferences(item))
+            if (!ValidatePreferences(item))
                 return false;
 
             // Potentially expensive path canculation last
@@ -253,9 +247,32 @@ namespace SmarterFoodSelectionSlim.Searching
             return true;
         }
 
-        /// <summary>
-        /// If item is a plant, do special plant validation logic
-        /// </summary>
+        private bool ValidateHunt(FoodSearchItem item)
+        {
+            if (item.FoodCategory != FoodCategory.Hunt)
+                return true;
+
+            
+            if (parameters.Getter.Faction != null
+                && item.Thing.Faction != null)
+            {
+                traceOutput?.AppendLine($"Rejecting item {item} because: faction {parameters.Getter.Faction} will not hunt faction {item.Thing.Faction}");
+                return false;
+            }
+
+            if (parameters.Eater.IsWildAnimal() || parameters.Eater.IsWildMan())
+            {
+                if (!parameters.Desperate
+                    && item.Def.race == parameters.Eater.def.race)
+                {
+                    traceOutput?.AppendLine($"Rejecting item {item} because: wild will not hunt same race if not desperate");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private bool ValidatePlant(FoodSearchItem item)
         {
             if (item.Def.plant == null)
@@ -305,9 +322,6 @@ namespace SmarterFoodSelectionSlim.Searching
             return true;
         }
 
-        /// <summary>
-        /// If the provided thing is a food dispenser, performs validation on the dispenser and the dispensed food
-        /// </summary>
         private bool ValidateDispenser(FoodSearchItem item)
         {
             var nutrientPasteDispenser = item.Thing as Building_NutrientPasteDispenser;
@@ -359,10 +373,7 @@ namespace SmarterFoodSelectionSlim.Searching
             return true;
         }
 
-        /// <summary>
-        /// Validates the food against the request and eater preferences, if applicable
-        /// </summary>
-        private bool ValidateFoodPreferences(FoodSearchItem item)
+        private bool ValidatePreferences(FoodSearchItem item)
         {
             // Only care about preferences at all if not desperate or animalistic
             if (parameters.Desperate || parameters.Eater.IsWildAnimal() || parameters.Eater.IsWildMan())
@@ -406,7 +417,6 @@ namespace SmarterFoodSelectionSlim.Searching
                 return true;
 
 
-            traceOutput?.AppendLine($"Considering thoughts from {parameters.Eater} ingesting {item}");
             var thoughtsFromConsuming = FoodUtility.ThoughtsFromIngesting(parameters.Eater, item.Thing, item.Def);
             var desperateThoughtFromConsuming = thoughtsFromConsuming.FirstOrDefault(DesperateOnlyThoughts.Contains);
             if (desperateThoughtFromConsuming != null)
