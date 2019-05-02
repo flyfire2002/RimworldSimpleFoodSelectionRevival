@@ -55,21 +55,12 @@ namespace SmarterFoodSelectionSlim.Patches
                 if (result.Success)
                 {
 #if DEBUG
-                    traceOutput.AppendLine($"Found food {result.Thing?.Label ?? "(none)"} for {eater}");
+                    traceOutput.AppendLine($"Found food {result.Thing?.Label ?? "(none)"} with def {result.ThingDef?.label ?? "(none)"} for {eater}");
 #endif
-
-                    ThingDef def = null;
-                    if (result.Thing != null)
-                    {
-                        def = FoodUtility.GetFinalIngestibleDef(result.Thing);
-#if DEBUG
-                        traceOutput.AppendLine($"Found food def {def?.label ?? "(none)"}");
-#endif
-                    }
 
                     __result = result.Thing != null;
                     foodSource = result.Thing;
-                    foodDef = def;
+                    foodDef = result.ThingDef;
                     return false;
                 }
             }
