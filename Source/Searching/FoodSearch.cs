@@ -189,7 +189,7 @@ namespace SmarterFoodSelectionSlim.Searching
                     if (Validate(item))
                     {
                         var searchDuration = (DateTime.Now - searchStartTime).TotalMilliseconds;
-                        traceOutput?.AppendLine($"Selecting food item {item} from category {item.FoodCategory} - search took {searchDuration}ms");
+                        traceOutput?.AppendLine($"Selecting {item} - search took {searchDuration}ms");
 
                         return item.Thing;
                     }
@@ -209,13 +209,13 @@ namespace SmarterFoodSelectionSlim.Searching
         {
             if (!parameters.AllowForbidden && item.Thing.IsForbidden(parameters.Getter))
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: is forbidden to {parameters.Getter}");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: is forbidden to {parameters.Getter}");
                 return false;
             }
 
             if (!parameters.Eater.WillEat(item.Def, parameters.Getter))
             {
-                traceOutput?.AppendLine($"Rejecting item {item} because: {parameters.Eater} will not eat def {item.Def}");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Eater} will not eat def {item.Def}");
                 return false;
             }
 
@@ -234,7 +234,7 @@ namespace SmarterFoodSelectionSlim.Searching
             // Potentially expensive path canculation last
             if (!parameters.Getter.CanReach(new LocalTargetInfo(item.Position), Verse.AI.PathEndMode.OnCell, Danger.Unspecified, parameters.Desperate))
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot reach");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Getter} cannot reach");
                 return false;
             }
 
@@ -250,7 +250,7 @@ namespace SmarterFoodSelectionSlim.Searching
             if (parameters.Getter.Faction != null
                 && item.Thing.Faction != null)
             {
-                traceOutput?.AppendLine($"Rejecting item {item} because: faction {parameters.Getter.Faction} will not hunt faction {item.Thing.Faction}");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: faction {parameters.Getter.Faction} will not hunt faction {item.Thing.Faction}");
                 return false;
             }
 
@@ -259,7 +259,7 @@ namespace SmarterFoodSelectionSlim.Searching
                 if (!parameters.Desperate
                     && item.Def.race == parameters.Eater.def.race)
                 {
-                    traceOutput?.AppendLine($"Rejecting item {item} because: wild will not hunt same race if not desperate");
+                    traceOutput?.AppendLine($"Rejecting {item.Thing}: wild will not hunt same race if not desperate");
                     return false;
                 }
             }
@@ -279,7 +279,7 @@ namespace SmarterFoodSelectionSlim.Searching
 
             if (!parameters.AllowPlant)
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: is plant");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: is plant");
                 return false;
             }
 
@@ -309,7 +309,7 @@ namespace SmarterFoodSelectionSlim.Searching
 
             if (parameters.Getter != parameters.Eater)
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: pawns should not carry plants");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: pawns should not carry plants");
                 return false;
             }
 
@@ -342,25 +342,25 @@ namespace SmarterFoodSelectionSlim.Searching
 
             if (!parameters.AllowDispenserFull)
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: search requested no dispensers");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: search requested no dispensers");
                 return false;
             }
 
             if (!parameters.Getter.CanManipulate())
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} cannot manipulate dispenser");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Getter} cannot manipulate dispenser");
                 return false;
             }
 
             if (!nutrientPasteDispenser.CanDispenseNow)
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: dispenser cannot dispense now");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: dispenser cannot dispense now");
                 return false;
             }
 
             if (!nutrientPasteDispenser.InteractionCell.Standable(item.Thing.Map))
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: dispenser interaction cell not standable");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: dispenser interaction cell not standable");
                 return false;
             }
 
@@ -376,32 +376,32 @@ namespace SmarterFoodSelectionSlim.Searching
 
             if (item.Def.ingestible.preferability > parameters.MaxPref)
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: preferability {item.Def.ingestible.preferability} exceeds requested maximum {parameters.MaxPref}");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: preferability {item.Def.ingestible.preferability} exceeds requested maximum {parameters.MaxPref}");
                 return false;
             }
 
             if (item.Thing.Faction != parameters.Getter.Faction
                 && item.Thing.Faction != parameters.Getter.HostFaction)
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: {parameters.Getter} not owner or guest");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Getter} not owner or guest of {item.Thing.Faction}");
                 return false;
             }
 
             if (!parameters.AllowCorpse && (item.Thing is Corpse))
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: is corpse");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: is corpse");
                 return false;
             }
 
             if (!parameters.AllowDrug && item.Def.IsDrug)
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: is drug");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: is drug");
                 return false;
             }
 
             if (!parameters.AllowSociallyImproper && !item.Thing.IsSociallyProper(parameters.Eater))
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: is not socially proper for {parameters.Eater}");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: is not socially proper for {parameters.Eater}");
                 return false;
             }
 
@@ -415,7 +415,7 @@ namespace SmarterFoodSelectionSlim.Searching
             var desperateThoughtFromConsuming = thoughtsFromConsuming.FirstOrDefault(DesperateOnlyThoughts.Contains);
             if (desperateThoughtFromConsuming != null)
             {
-                traceOutput?.AppendLine($"Rejecting {item} because: would cause desperate thought {desperateThoughtFromConsuming}");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: would cause desperate thought {desperateThoughtFromConsuming}");
                 return false;
             }
 
