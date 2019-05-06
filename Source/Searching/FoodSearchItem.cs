@@ -34,6 +34,10 @@ namespace SmarterFoodSelectionSlim.Searching
                 if (def == null)
                 {
                     def = RimWorld.FoodUtility.GetFinalIngestibleDef(Thing, false);
+                    if (def == null)
+                    {
+                        Mod.LogError("Unable to retrieve def for Thing " + Thing);
+                    }
                 }
                 return def;
             }

@@ -62,7 +62,7 @@ namespace SmarterFoodSelectionSlim.Searching
 
                         var inventoryResult = SearchFoods(inventoryFoods, profile.Good);
                         if (inventoryResult != null)
-                            return new FoodSearchResult { Success = true, Thing = inventoryResult };
+                            return new FoodSearchResult(inventoryResult);
                     }
                 }
 
@@ -85,7 +85,7 @@ namespace SmarterFoodSelectionSlim.Searching
                     .ToArray();
                 var nearbyResult = SearchFoods(nearbyFoods, profile.Good);
                 if (nearbyResult != null)
-                    return new FoodSearchResult { Success = true, Thing = nearbyResult };
+                    return new FoodSearchResult(nearbyResult);
 
                 // If nothing nearby, expand search radius to entire map
                 traceOutput?.AppendLine("Searching faraway map foods...");
@@ -94,7 +94,7 @@ namespace SmarterFoodSelectionSlim.Searching
                     .ToArray();
                 var farawayResult = SearchFoods(farawayFoods, profile.Good);
                 if (farawayResult != null)
-                    return new FoodSearchResult { Success = true, Thing = farawayResult };
+                    return new FoodSearchResult(farawayResult);
 
                 // Only resort to bad foods if necessary
                 if (!ResortToBad(parameters.Eater))
@@ -106,11 +106,11 @@ namespace SmarterFoodSelectionSlim.Searching
 
                 var badInventoryResult = SearchFoods(inventoryFoods, profile.Bad);
                 if (badInventoryResult != null)
-                    return new FoodSearchResult { Success = true, Thing = badInventoryResult };
+                    return new FoodSearchResult(badInventoryResult);
 
                 var badMapResult = SearchFoods(mapFoods, profile.Bad);
                 if (badMapResult != null)
-                    return new FoodSearchResult { Success = true, Thing = badMapResult };
+                    return new FoodSearchResult(badMapResult);
 
                 // Only resort to desperate foods as a last resort
                 if (!ResortToDesperate(parameters.Eater))
@@ -124,11 +124,11 @@ namespace SmarterFoodSelectionSlim.Searching
                 // TODO: reconsider previous options rejected because of desperate thoughts
                 var desperateInventoryResult = SearchFoods(inventoryFoods, profile.Desperate);
                 if (desperateInventoryResult != null)
-                    return new FoodSearchResult { Success = true, Thing = desperateInventoryResult };
+                    return new FoodSearchResult(desperateInventoryResult);
 
                 var desperateMapResult = SearchFoods(mapFoods, profile.Desperate);
                 if (desperateMapResult != null)
-                    return new FoodSearchResult { Success = true, Thing = desperateMapResult };
+                    return new FoodSearchResult(desperateMapResult);
 
                 // Don't fall back to vanilla in case certain food types were excluded intentionally
                 return new FoodSearchResult { Success = true };
@@ -170,7 +170,7 @@ namespace SmarterFoodSelectionSlim.Searching
         /// <summary>
         /// Iterates through the provided categories and returns the first valid food
         /// </summary>
-        private Thing SearchFoods(IList<FoodSearchItem> foods, IList<IList<FoodCategory>> categories)
+        private FoodSearchItem SearchFoods(IList<FoodSearchItem> foods, IList<IList<FoodCategory>> categories)
         {
             var searchStartTime = DateTime.Now;
 
@@ -191,7 +191,7 @@ namespace SmarterFoodSelectionSlim.Searching
                         var searchDuration = (DateTime.Now - searchStartTime).TotalMilliseconds;
                         traceOutput?.AppendLine($"Selecting {item} - search took {searchDuration}ms");
 
-                        return item.Thing;
+                        return item;
                     }
                 }
             }

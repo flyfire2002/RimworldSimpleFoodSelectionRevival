@@ -55,12 +55,12 @@ namespace SmarterFoodSelectionSlim.Patches
                 if (result.Success)
                 {
 #if DEBUG
-                    traceOutput.AppendLine($"Found food {result.Thing?.Label ?? "(none)"} with def {result.ThingDef?.label ?? "(none)"} for {eater}");
+                    traceOutput.AppendLine($"Found food {result.Thing?.Label ?? "(none)"} with def {result.Def?.label ?? "(none)"} for {eater}");
 #endif
 
                     __result = result.Thing != null;
                     foodSource = result.Thing;
-                    foodDef = result.ThingDef;
+                    foodDef = result.Def;
                     return false;
                 }
             }

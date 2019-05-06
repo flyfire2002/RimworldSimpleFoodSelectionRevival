@@ -9,7 +9,16 @@ namespace SmarterFoodSelectionSlim.Searching
     public class FoodSearchResult
     {
         public Thing Thing;
-        public ThingDef ThingDef;
+        public ThingDef Def;
         public bool Success;
+
+        public FoodSearchResult() { }
+
+        public FoodSearchResult(FoodSearchItem foodSearchItem)
+        {
+            Thing = foodSearchItem.Thing;
+            Def = foodSearchItem.Def;
+            Success = true;
+        }
     }
 }
