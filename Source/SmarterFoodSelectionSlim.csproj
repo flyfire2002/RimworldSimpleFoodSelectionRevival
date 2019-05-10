@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Extensions.cs" />
     <Compile Include="Searching\FoodSearchItem.cs" />
+    <Compile Include="Searching\FoodSearchGroups.cs" />
     <Compile Include="Searching\FoodSearchParameters.cs" />
     <Compile Include="Searching\FoodCategoryCache.cs" />
     <Compile Include="Searching\FoodSearch.cs" />

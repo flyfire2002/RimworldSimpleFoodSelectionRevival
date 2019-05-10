@@ -22,6 +22,8 @@ namespace SmarterFoodSelectionSlim.Searching
         /// <summary>Will only eat when starving</summary>
         public IList<IList<FoodCategory>> Desperate;
 
+        // TODO: collection with all tiers, and ShouldUse func
+
         public static Profile For(Pawn pawn)
         {
             if (pawn.IsColonist())

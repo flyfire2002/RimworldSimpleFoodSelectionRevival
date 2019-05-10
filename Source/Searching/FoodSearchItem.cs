@@ -9,7 +9,7 @@ namespace SmarterFoodSelectionSlim.Searching
 {
     public class FoodSearchItem
     {
-        public FoodSearchItem(Thing thing)
+        private FoodSearchItem(Thing thing)
         {
             Thing = thing;
             FoodCategory = FoodCategoryCache.GetFor(thing);
@@ -17,8 +17,18 @@ namespace SmarterFoodSelectionSlim.Searching
 
         public FoodSearchItem(Thing thing, IntVec3 searchingFrom) : this(thing)
         {
-            Position = GetThingPosition(thing);
-            Distance = (searchingFrom - thing.Position).LengthManhattan;
+            if (searchingFrom == IntVec3.Invalid)
+            {
+                // If invalid, assume inventory
+                Position = IntVec3.Invalid;
+                Distance = -1;
+            }
+            else
+            {
+                // Otherwise, assume valid map position
+                Position = GetThingPosition(thing);
+                Distance = (searchingFrom - thing.Position).LengthManhattan;
+            }
         }
 
         public readonly Thing Thing;
@@ -44,7 +54,7 @@ namespace SmarterFoodSelectionSlim.Searching
         }
 
         /// <summary>
-        /// Whether the item is ever a valid food, regardless of eater or getter or other circumstances
+        /// Whether the item could ever be a valid food, regardless of eater or getter or other circumstances
         /// </summary>
         public bool IsIngestibleNow()
         {
