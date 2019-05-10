@@ -45,48 +45,28 @@ namespace SmarterFoodSelectionSlim.Searching
                 var profile = Profile.For(parameters.Eater);
                 if (profile == null)
                 {
-                    traceOutput?.AppendLine($"No profile for {parameters.Eater}");
+                    traceOutput?.AppendLine($"No profile found for {parameters.Eater}, falling back to vanilla");
                     return new FoodSearchResult { Success = false };
                 }
                 traceOutput?.AppendLine($"Using profile {profile.Name} for {parameters.Eater}");
 
-                foreach (var foodSearchGroup in foodSearchGroups)
+                foreach (var tier in profile)
                 {
-                    var result = SearchFoods(foodSearchGroup, profile.Good);
-                    if (result != null)
-                        return new FoodSearchResult(result);
-                }
+                    if (!tier.ShouldUse(parameters.Eater))
+                    {
+                        traceOutput?.AppendLine($"Not resorting to tier {tier.Name}, aborting here");
+                        return new FoodSearchResult { Success = true };
+                    }
 
-                // Only resort to bad foods if necessary
-                if (!ResortToBad(parameters.Eater))
-                {
-                    traceOutput?.AppendLine($"Not resorting to Bad foods");
-                    return new FoodSearchResult { Success = true };
-                }
-                traceOutput?.AppendLine($"Looking for Bad foods...");
-
-                foreach (var foodSearchGroup in foodSearchGroups)
-                {
-                    var result = SearchFoods(foodSearchGroup, profile.Good);
-                    if (result != null)
-                        return new FoodSearchResult(result);
-                }
-
-                // Only resort to desperate foods as a last resort
-                if (!ResortToDesperate(parameters.Eater))
-                {
-                    traceOutput?.AppendLine($"Not resorting to Desperate foods");
-                    return new FoodSearchResult { Success = true };
-                }
-                traceOutput?.AppendLine($"Looking for Desperate foods...");
-                parameters.Desperate = true;
-
-                // TODO: reconsider previous options rejected because of desperate thoughts
-                foreach (var foodSearchGroup in foodSearchGroups)
-                {
-                    var result = SearchFoods(foodSearchGroup, profile.Desperate);
-                    if (result != null)
-                        return new FoodSearchResult(result);
+                    foreach (var foodSearchGroup in foodSearchGroups)
+                    {
+                        var result = SearchFoods(foodSearchGroup, tier);
+                        if (result != null)
+                        {
+                            traceOutput?.AppendLine($"Selecting food " + result);
+                            return new FoodSearchResult(result);
+                        }
+                    }
                 }
 
                 // Don't fall back to vanilla in case certain food types were excluded intentionally
@@ -99,14 +79,10 @@ namespace SmarterFoodSelectionSlim.Searching
             }
         }
 
-        public static bool ResortToBad(Pawn eater) => eater.needs.food.CurCategory >= HungerCategory.UrgentlyHungry;
-
-        public static bool ResortToDesperate(Pawn eater) => eater.needs.food.CurCategory >= HungerCategory.Starving;
-
         /// <summary>
         /// Iterates through the provided categories and returns the first valid food
         /// </summary>
-        private FoodSearchItem SearchFoods(IList<FoodSearchItem> foods, IList<IList<FoodCategory>> categories)
+        private FoodSearchItem SearchFoods(IList<FoodSearchItem> foods, IEnumerable<IEnumerable<FoodCategory>> categories)
         {
             var searchStartTime = DateTime.Now;
 

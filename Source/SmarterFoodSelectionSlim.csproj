@@ -65,6 +65,7 @@
     <Compile Include="Patches\FoodUtility_TryFindBestFoodSourceFor.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="Searching\Profile.cs" />
+    <Compile Include="Searching\ProfileFoodTier.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

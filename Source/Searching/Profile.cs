@@ -1,4 +1,6 @@
-﻿using System;
+﻿using RimWorld;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,40 +11,68 @@ namespace SmarterFoodSelectionSlim.Searching
     /// <summary>
     /// Defines a prioritized list of food categories, grouped into preferability buckets
     /// </summary>
-    public class Profile
+    public class Profile : IEnumerable<ProfileFoodTier>
     {
-        public string Name;
+        public readonly string Name;
 
         /// <summary>Good food</summary>
-        public IList<IList<FoodCategory>> Good;
+        public readonly ProfileFoodTier Good;
 
         /// <summary>Will only eat when desperately hungry</summary>
-        public IList<IList<FoodCategory>> Bad;
+        public readonly ProfileFoodTier Bad;
 
         /// <summary>Will only eat when starving</summary>
-        public IList<IList<FoodCategory>> Desperate;
+        public readonly ProfileFoodTier Desperate;
 
-        // TODO: collection with all tiers, and ShouldUse func
+        /// <summary>All food tiers for this profile, in decreasing order of preference</summary>
+        public readonly IEnumerable<ProfileFoodTier> Tiers;
+
+        public Profile(string name, 
+            IEnumerable<IEnumerable<FoodCategory>> good, 
+            IEnumerable<IEnumerable<FoodCategory>> bad, 
+            IEnumerable<IEnumerable<FoodCategory>> desperate)
+        {
+            Name = name;
+            Good = new ProfileFoodTier("Good", good, x => true);
+            Bad = new ProfileFoodTier("Bad", bad, ResortToBad);
+            Desperate = new ProfileFoodTier("Desperate", desperate, ResortToDesperate);
+            Tiers = new[]
+            {
+                Good,
+                Bad,
+                Desperate
+            };
+        }
+
+        public static bool ResortToBad(Pawn eater) => 
+            eater.needs.food.CurCategory >= HungerCategory.UrgentlyHungry;
+
+        public static bool ResortToDesperate(Pawn eater) => 
+            eater.needs.food.CurCategory >= HungerCategory.Starving;
+
+        #region IEnumerable implementation
+        public IEnumerator<ProfileFoodTier> GetEnumerator() => Tiers.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => Tiers.GetEnumerator();
+        #endregion
 
         public static Profile For(Pawn pawn)
         {
-            if (pawn.IsColonist())
-                return Colonist;
-
             if (pawn.IsPet())
                 return Pet;
 
             if (pawn.IsAscetic())
                 return Ascetic;
 
+            if (!pawn.AnimalOrWildMan())
+                return Human;
+
             // Others can use the vanilla algorithm
             return null;
         }
 
-        public static readonly Profile Colonist = new Profile
-        {
-            Name = "Colonist",
-            Good = new[]
+        public static readonly Profile Human = new Profile(
+            name: "Human",
+            good: new[]
             {
                 new[] { FoodCategory.MealLavish },
                 new[] { FoodCategory.MealFine },
@@ -51,13 +81,13 @@ namespace SmarterFoodSelectionSlim.Searching
                 new[] { FoodCategory.MealSurvival },
                 new[] { FoodCategory.MealAwful },
             },
-            Bad = new[]
+            bad: new[]
             {
                 new[] { FoodCategory.FertEggs },
                 new[] { FoodCategory.RawBad, FoodCategory.AnimalProduct },
                 new[] { FoodCategory.Luxury },
             },
-            Desperate = new[]
+            desperate: new[]
             {
                 new[] { FoodCategory.Plant, FoodCategory.PlantMatter },
                 new[] { FoodCategory.RawInsect },
@@ -65,13 +95,11 @@ namespace SmarterFoodSelectionSlim.Searching
                 new[] { FoodCategory.Corpse },
                 new[] { FoodCategory.InsectCorpse },
                 new[] { FoodCategory.HumanlikeCorpse },
-            }
-        };
+            });
 
-        public static readonly Profile Pet = new Profile
-        {
-            Name = "Pet",
-            Good = new[]
+        public static readonly Profile Pet = new Profile(
+            name: "Pet",
+            good: new[]
             {
                 new[] { FoodCategory.Grass, FoodCategory.Hunt },
                 new[] { FoodCategory.Hay },
@@ -83,22 +111,20 @@ namespace SmarterFoodSelectionSlim.Searching
                 new[] { FoodCategory.Corpse },
                 new[] { FoodCategory.RawTasty, FoodCategory.AnimalProduct },
             },
-            Bad = new[]
+            bad: new[]
             {
                 // TODO: Prevent/accommodate meals being taken for training
                 new[] { FoodCategory.MealSimple },
                 new[] { FoodCategory.Plant, FoodCategory.PlantMatter, FoodCategory.Tree },
             },
-            Desperate = new[]
+            desperate: new[]
             {
                 new[] { FoodCategory.FertEggs },
-            }
-        };
+            });
 
-        public static readonly Profile Ascetic = new Profile
-        {
-            Name = "Ascetic",
-            Good = new[]
+        public static readonly Profile Ascetic = new Profile(
+            name: "Ascetic",
+            good: new[]
             {
                 new[] { FoodCategory.MealAwful },
                 new[] { FoodCategory.MealSimple },
@@ -106,22 +132,20 @@ namespace SmarterFoodSelectionSlim.Searching
                 new[] { FoodCategory.RawTasty },
                 new[] { FoodCategory.MealSurvival },
             },
-            Bad = new[]
+            bad: new[]
             {
                 new[] { FoodCategory.Plant, FoodCategory.PlantMatter },
                 new[] { FoodCategory.MealFine },
                 new[] { FoodCategory.MealLavish },
                 new[] { FoodCategory.FertEggs },
             },
-            Desperate = new[]
+            desperate: new[]
             {
                 new[] { FoodCategory.RawInsect },
                 new[] { FoodCategory.Kibble },
                 new[] { FoodCategory.Corpse },
                 new[] { FoodCategory.InsectCorpse },
                 new[] { FoodCategory.HumanlikeCorpse },
-            }
-        };
+            });
     }
 }
-
