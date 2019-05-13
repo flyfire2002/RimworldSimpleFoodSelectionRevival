@@ -50,21 +50,32 @@ namespace SmarterFoodSelectionSlim.Searching
                 }
                 traceOutput?.AppendLine($"Using profile {profile.Name} for {parameters.Eater}");
 
-                foreach (var tier in profile)
-                {
-                    if (!tier.ShouldUse(parameters.Eater))
+                foreach (var foodTier in profile)
+                {   // foodTier e.g. Good/Bad/Desperate
+                    if (!foodTier.ShouldUse(parameters.Eater))
                     {
-                        traceOutput?.AppendLine($"Not resorting to tier {tier.Name}, aborting here");
+                        traceOutput?.AppendLine($"Not using food tier {foodTier.Name}, assuming others are worse and aborting here");
                         return new FoodSearchResult { Success = true };
                     }
 
+                    traceOutput?.AppendLine($"Searching food tier {foodTier.Name}");
                     foreach (var foodSearchGroup in foodSearchGroups)
-                    {
-                        var result = SearchFoods(foodSearchGroup, tier);
-                        if (result != null)
-                        {
-                            traceOutput?.AppendLine($"Selecting food " + result);
-                            return new FoodSearchResult(result);
+                    {   // foodSearchGroup e.g. Inventory/HomeArea
+                        if (!foodSearchGroup.Any())
+                            continue;
+
+                        // TODO: optimize sorting/search loops for group lookup?
+                        foreach (var categoryGroup in foodTier)
+                        {   // categoryGroup e.g. RawMeat||AnimalCorpse
+                            var categoryFoods = foodSearchGroup.Where(x => categoryGroup.Contains(x.FoodCategory));
+                            foreach (var foodSearchItem in categoryFoods)
+                            {   // foodSearchItem e.g. SurvivalMealPack24406
+                                if (Validate(foodSearchItem))
+                                {
+                                    traceOutput?.AppendLine($"Selecting food " + foodSearchItem);
+                                    return new FoodSearchResult(foodSearchItem);
+                                }
+                            }
                         }
                     }
                 }
@@ -77,38 +88,6 @@ namespace SmarterFoodSelectionSlim.Searching
                 Mod.LogError(ex.ToString() + Environment.NewLine + ex.StackTrace);
                 return new FoodSearchResult { Success = false };
             }
-        }
-
-        /// <summary>
-        /// Iterates through the provided categories and returns the first valid food
-        /// </summary>
-        private FoodSearchItem SearchFoods(IList<FoodSearchItem> foods, IEnumerable<IEnumerable<FoodCategory>> categories)
-        {
-            var searchStartTime = DateTime.Now;
-
-            if (!foods.Any())
-                return null;
-
-            // Iterate through categories in order of preference
-            // TODO: optimize sorting/search loops
-            foreach (var group in categories)
-            {
-                // Iterate through matched foods in order of distance
-                traceOutput?.AppendLine("Searching for " + string.Join("|", group.Select(x => x.ToString()).ToArray()));
-                foreach (var item in foods.Where(x => group.Contains(x.FoodCategory)))
-                {
-                    // Find the first valid result
-                    if (Validate(item))
-                    {
-                        var searchDuration = (DateTime.Now - searchStartTime).TotalMilliseconds;
-                        traceOutput?.AppendLine($"Selecting {item} - search took {searchDuration}ms");
-
-                        return item;
-                    }
-                }
-            }
-
-            return null;
         }
 
         /// <summary>
