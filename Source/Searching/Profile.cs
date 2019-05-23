@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Verse;
 
-namespace SmarterFoodSelectionSlim.Searching
+namespace SimpleFoodSelection.Searching
 {
     /// <summary>
     /// Defines a prioritized list of food categories, grouped into preferability buckets

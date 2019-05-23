@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Verse;
 
-namespace SmarterFoodSelectionSlim.Searching
+namespace SimpleFoodSelection.Searching
 {
     public static class FoodCategoryCache
     {

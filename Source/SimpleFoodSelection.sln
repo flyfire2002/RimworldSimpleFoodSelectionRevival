@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.438
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmarterFoodSelectionSlim", "SmarterFoodSelectionSlim.csproj", "{27973F42-7DD4-4138-A45F-F3254629CAC3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleFoodSelection", "SimpleFoodSelection.csproj", "{27973F42-7DD4-4138-A45F-F3254629CAC3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".git", ".git", "{ECE47E16-414E-45A2-8C23-BA33E8D66F90}"
 	ProjectSection(SolutionItems) = preProject
@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".git", ".git", "{ECE47E16-4
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mod", "Mod", "{CCAC530E-D55D-427D-8B54-D8A29D04E06B}"
 	ProjectSection(SolutionItems) = preProject
-		..\Mod\SmarterFoodSelectionSlim\About\About.xml = ..\Mod\SmarterFoodSelectionSlim\About\About.xml
+		..\Mod\SimpleFoodSelection\About\About.xml = ..\Mod\SimpleFoodSelection\About\About.xml
 	EndProjectSection
 EndProject
 Global

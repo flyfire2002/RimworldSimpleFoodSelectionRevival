@@ -1,13 +1,13 @@
 ﻿using Harmony;
 using RimWorld;
-using SmarterFoodSelectionSlim.Searching;
+using SimpleFoodSelection.Searching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Verse;
 
-namespace SmarterFoodSelectionSlim.Patches
+namespace SimpleFoodSelection.Patches
 {
     public static class FoodUtility_BestFoodSourceOnMap
     {

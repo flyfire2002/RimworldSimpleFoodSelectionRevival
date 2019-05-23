@@ -1,1 +1,1 @@
-# RimWorld-SmarterFoodSelectionSlim
+# RimWorld-SimpleFoodSelection

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using Verse;
 
-namespace SmarterFoodSelectionSlim.Searching
+namespace SimpleFoodSelection.Searching
 {
     /// <summary>
     /// Encapsulates the order in which items should be searched (for example: inventory, then home area, then other) within a Profile food tier

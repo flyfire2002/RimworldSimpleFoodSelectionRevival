@@ -6,7 +6,7 @@ using System.Text;
 using Verse;
 using Verse.AI;
 
-namespace SmarterFoodSelectionSlim.Searching
+namespace SimpleFoodSelection.Searching
 {
     public class FoodSearch
     {

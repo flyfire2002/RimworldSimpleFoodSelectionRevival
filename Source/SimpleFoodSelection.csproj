@@ -7,8 +7,8 @@
     <ProjectGuid>{27973F42-7DD4-4138-A45F-F3254629CAC3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SmarterFoodSelectionSlim</RootNamespace>
-    <AssemblyName>SmarterFoodSelectionSlim</AssemblyName>
+    <RootNamespace>SimpleFoodSelection</RootNamespace>
+    <AssemblyName>SimpleFoodSelection</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -37,7 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\Mod\SmarterFoodSelectionSlim\Assemblies\0Harmony.dll</HintPath>
+      <HintPath>..\Mod\SimpleFoodSelection\Assemblies\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
@@ -73,11 +73,11 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>echo "Moving newly built dll"
-xcopy /Y $(ProjectDir)bin\$(ConfigurationName)\SmarterFoodSelectionSlim.dll $(ProjectDir)..\Mod\SmarterFoodSelectionSlim\Assemblies
+xcopy /Y $(ProjectDir)bin\$(ConfigurationName)\SimpleFoodSelection.dll $(ProjectDir)..\Mod\SimpleFoodSelection\Assemblies
 
 echo "Clearing existing mod directory"
-if EXIST "C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\SmarterFoodSelectionSlim" (
-    RMDIR /S /Q "C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\SmarterFoodSelectionSlim" )
+if EXIST "C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\SimpleFoodSelection" (
+    RMDIR /S /Q "C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\SimpleFoodSelection" )
 
 echo "Copying to Mods directory"
 xcopy /S $(ProjectDir)\..\Mod "C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\"</PostBuildEvent>
