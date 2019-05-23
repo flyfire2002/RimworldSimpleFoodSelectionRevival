@@ -22,12 +22,12 @@ namespace SmarterFoodSelectionSlim.Searching
         public FoodSearch(FoodSearchParameters parameters)
         {
             this.parameters = parameters;
+            foodSearchGroups = new FoodSearchGroups(parameters.Getter);
         }
 
         public FoodSearch(FoodSearchParameters parameters, StringBuilder traceOutput) : this(parameters)
         {
             this.traceOutput = traceOutput;
-            foodSearchGroups = new FoodSearchGroups(parameters.Getter);
         }
 
         private readonly StringBuilder traceOutput = new StringBuilder();
