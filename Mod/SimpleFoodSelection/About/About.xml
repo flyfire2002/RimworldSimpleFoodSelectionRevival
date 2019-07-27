@@ -1,44 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>Better Food Selection</name>
+  <name>Simple Food Selection</name>
   <author>AndHobbes</author>
   <supportedVersions>
     <li>1.0</li>
   </supportedVersions>
   <description>
-    Replaces the vanilla food searching algorithm with a better one, but is less heavy and intricate than Smarter Food Selections.
-
-    ----------
-
-    [How it works]
-
-    This mod intercepts all requests to find the best food (mainly FoodUtility.TryFindBestFoodSourceFor and FoodUtility.BestFoodSourceOnMap) and redirects them to a new, simpler food search algorithm.
-
-    Each Pawn is assigned a diet profile based on race, faction, etc. Each Profile defines three tiers of food: Good, Bad, and Desperate. Good food is anything that is good for the Pawn to eat and will be chosen whenever the Pawn is hungry. Bad is anything that is mildly undesirable or annoying (raw food; fertilized eggs) and will only be considered when the Pawn is on the verge of starvation. Desperate is anything that will give severe mood penalties (humans eating corpses) or makes no sense at all (pets eating lavish meals) and will only be eaten when the Pawn is actually starving. Within each food tier, individual food categories can be ranked higher, lower, or equivalent to each other. For example, the Colonist profile prefers lavish over fine meals, but the Pet profile prefers insect meat and insect corpses exactly the same.
-
-    When the search algorithm receives a request to find food, it searches inventory first (if applicable), then the whole map. It first looks for Good food within a small radius, then Good food on anywhere, then Bad food if urgently hungry, then Desperate food if starving. Within each of those steps, it iterates through all of the food categories in the given tier, and if there are any matching foods, will use the closest one. In other words, diet profile order is the first priority, and distance is the second priority.
-
-    Note that the search is split into nearby Good versus faraway Good foods. This means that the algorithm will iterate through all Good food categories within the nearby radius, and then iterate through them again outside the nearby radius. As a result, colonists will prefer a simple meal nearby over a lavish meal on the other side of the map, without performing a cryptic optimality calcuation like the vanilla logic.
-
-    Performance seems to be good, since the algorithm works under the assumption that most Pawns have a Good food source nearby most of the time. Some additional caching might help improve performance further.
-
-    Only a few diet Profiles are defined currently. In any case where one is not defined, Pawns will fall back to the original vanilla food search logic.
-
-    ----------
-
-    [Background &amp; Credits]
-    
-    Based on the original, wonderful, semi-abandoned, and atrociously messy Smarter Food Selections mod:
-    https://steamcommunity.com/sharedfiles/filedetails/?id=887716138&amp;searchtext=smarter
-
-    Why a new mod? I went to try to fix a compatibility issue in the original and walked away hours later still not fully understanding how it all fit together. Seriously, that code has more spaghetti than an Olive Garden. There seem to be hundreds of lines of code just to handle cannibal nutrient paste meals correctly.
-
-    But on the other hand, have you tried playing without it? The decisions that vanilla Pawns make about what to eat make no sense whatsoever. Smarter Food Selections was basically required for player sanity.
-
-    So I started from scratch, trying to see the minimum amount of intervention required to make Pawns behave sensibly. The result is a small, non-configurable set of defaults, rather than a bulky customizable system. It is much more compact and manageable; this mod's dll is a quarter the size of the SFS dll.
-    
-    This mod uses an adaptation of the Smarter Food Selection mod's FoodCategory logic, since that system works very well.
-    
-    Many thanks to WishMaster for making the original Smarter Food Selections, and to Vathand for keeping it running.
+    Replaces the vanilla food searching algorithm with a better one.
   </description>
 </ModMetaData>
