@@ -15,18 +15,6 @@ namespace SimpleFoodSelection.Searching
     {
         public readonly string Name;
 
-        /// <summary>Good food</summary>
-        public readonly ProfileFoodTier Good;
-
-        /// <summary>Will only eat when desperately hungry</summary>
-        public readonly ProfileFoodTier Bad;
-
-        /// <summary>Will only eat when starving</summary>
-        public readonly ProfileFoodTier Desperate;
-
-        /// <summary>All food tiers for this profile, in decreasing order of preference</summary>
-        public readonly IEnumerable<ProfileFoodTier> Tiers;
-
         public Profile(string name, 
             IEnumerable<IEnumerable<FoodCategory>> good, 
             IEnumerable<IEnumerable<FoodCategory>> bad, 
@@ -44,10 +32,22 @@ namespace SimpleFoodSelection.Searching
             };
         }
 
-        public static bool ResortToBad(Pawn eater) => 
+        /// <summary>Good food</summary>
+        private readonly ProfileFoodTier Good;
+
+        /// <summary>Will only eat when desperately hungry</summary>
+        private readonly ProfileFoodTier Bad;
+
+        /// <summary>Will only eat when starving</summary>
+        private readonly ProfileFoodTier Desperate;
+
+        /// <summary>All food tiers for this profile, in decreasing order of preference</summary>
+        public readonly IEnumerable<ProfileFoodTier> Tiers;
+
+        private static bool ResortToBad(Pawn eater) => 
             eater.needs.food.CurCategory >= HungerCategory.UrgentlyHungry;
 
-        public static bool ResortToDesperate(Pawn eater) => 
+        private static bool ResortToDesperate(Pawn eater) => 
             eater.needs.food.CurCategory >= HungerCategory.Starving;
 
         #region IEnumerable implementation
