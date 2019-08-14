@@ -122,8 +122,9 @@ namespace SimpleFoodSelection.Searching
             if (!ValidatePreferences(item))
                 return false;
 
-            // Potentially expensive path canculation last
-            if (!parameters.Getter.CanReach(new LocalTargetInfo(item.Position), Verse.AI.PathEndMode.OnCell, Danger.Unspecified, parameters.Desperate))
+            // Potentially expensive path calculation last
+            if (!item.IsInInventory
+                && !parameters.Getter.CanReach(new LocalTargetInfo(item.Position), Verse.AI.PathEndMode.OnCell, Danger.Unspecified, parameters.Desperate))
             {
                 traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Getter} cannot reach");
                 return false;

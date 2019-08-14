@@ -56,23 +56,28 @@ namespace SimpleFoodSelection.Searching
         /// <summary>
         /// Whether the item could ever be a valid food, regardless of eater or getter or other circumstances
         /// </summary>
-        public bool IsIngestibleNow()
+        public bool IsIngestibleNow
         {
-            if (FoodCategory == FoodCategory.Null
-                || FoodCategory == FoodCategory.Ignore)
+            get
             {
-                // Excluded by categorization algorithm
-                return false;
-            }
+                if (FoodCategory == FoodCategory.Null
+                    || FoodCategory == FoodCategory.Ignore)
+                {
+                    // Excluded by categorization algorithm
+                    return false;
+                }
 
-            if (Thing is Building_NutrientPasteDispenser)
-            {
-                // Need to do further checks which may not be necessary if better food is available
-                return true;
-            }
+                if (Thing is Building_NutrientPasteDispenser)
+                {
+                    // Need to do further checks which may not be necessary if better food is available
+                    return true;
+                }
 
-            return Thing.IngestibleNow;
+                return Thing.IngestibleNow;
+            }
         }
+
+        public bool IsInInventory => Position == IntVec3.Invalid;
 
         /// <summary>
         /// What cell to use as a thing's position, for both distance and reachability calculations
