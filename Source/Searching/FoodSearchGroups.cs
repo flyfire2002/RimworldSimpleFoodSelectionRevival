@@ -92,8 +92,9 @@ namespace SimpleFoodSelection.Searching
         /// </summary>
         IEnumerable<FoodSearchItem> GetFoods(IList<Thing> things, IntVec3 startingPosition) =>
             things.Select(x => new FoodSearchItem(x, startingPosition))
-                    // Ignore anything non-ingestible to avoid having to sort later
-                    .Where(x => x.IsIngestibleNow);
+                  // Ignore anything non-ingestible to avoid having to sort later
+                  .Where(x => x.IsIngestibleNow)
+                  .OrderBy(x => x.Distance);
 
         #region IEnumerable implementation
         public IEnumerator<IList<FoodSearchItem>> GetEnumerator() => Groups.GetEnumerator();

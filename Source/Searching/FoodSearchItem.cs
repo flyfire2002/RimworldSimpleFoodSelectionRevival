@@ -73,6 +73,13 @@ namespace SimpleFoodSelection.Searching
                     return true;
                 }
 
+                if (Thing is Pawn)
+                {
+                    // Allow pawns for hunting checks
+                    return true;
+                }
+
+                // All other foods self-report
                 return Thing.IngestibleNow;
             }
         }
