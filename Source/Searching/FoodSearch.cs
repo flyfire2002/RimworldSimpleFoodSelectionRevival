@@ -151,21 +151,17 @@ namespace SimpleFoodSelection.Searching
                 return false;
             }
 
-            if (parameters.Getter.Faction != null
-                && item.Thing.Faction != null)
+            var pawn = item.Thing as Pawn;
+            if (pawn == null)
             {
-                traceOutput?.AppendLine($"Rejecting {item.Thing}: faction {parameters.Getter.Faction} will not hunt faction {item.Thing.Faction}");
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: unable to find Pawn reference for hunting evaluation");
                 return false;
             }
 
-            if (parameters.Eater.IsWildAnimal() || parameters.Eater.IsWildMan())
+            if (!FoodUtility.IsAcceptablePreyFor(parameters.Getter, pawn))
             {
-                if (!parameters.Desperate
-                    && item.Def.race == parameters.Eater.def.race)
-                {
-                    traceOutput?.AppendLine($"Rejecting {item.Thing}: wild will not hunt same race if not desperate");
-                    return false;
-                }
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: not acceptable prey for {parameters.Getter}");
+                return false;
             }
 
             return true;
