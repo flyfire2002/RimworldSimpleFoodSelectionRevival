@@ -104,6 +104,12 @@ namespace SimpleFoodSelection.Searching
                 return false;
             }
 
+            if (!parameters.Getter.CanReserve(item.Thing, stackCount: 1))
+            {
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Getter} cannot reserve any from stack");
+                return false;
+            }
+
             if (!parameters.Eater.WillEat(item.Def, parameters.Getter))
             {
                 traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Eater} will not eat def {item.Def}");
@@ -139,6 +145,12 @@ namespace SimpleFoodSelection.Searching
                 return true;
 
             
+            if (parameters.Getter == item.Thing)
+            {
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Getter} will not hunt self");
+                return false;
+            }
+
             if (parameters.Getter.Faction != null
                 && item.Thing.Faction != null)
             {
