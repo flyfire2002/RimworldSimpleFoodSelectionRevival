@@ -144,7 +144,13 @@ namespace SimpleFoodSelection.Searching
             if (item.FoodCategory != FoodCategory.Hunt)
                 return true;
 
-            
+
+            if (parameters.Getter != parameters.Eater)
+            {
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: will not hunt for others");
+                return false;
+            }
+
             if (parameters.Getter == item.Thing)
             {
                 traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Getter} will not hunt self");
