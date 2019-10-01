@@ -104,6 +104,12 @@ namespace SimpleFoodSelection.Searching
                 return false;
             }
 
+            if (!parameters.CanUseInventory && item.IsInInventory)
+            {
+                traceOutput?.AppendLine($"Rejecting {item.Thing}: is in inventory");
+                return false;
+            }
+
             if (!parameters.Getter.CanReserve(item.Thing, stackCount: 1))
             {
                 traceOutput?.AppendLine($"Rejecting {item.Thing}: {parameters.Getter} cannot reserve any from stack");
