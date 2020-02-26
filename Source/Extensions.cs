@@ -51,7 +51,7 @@ namespace SimpleFoodSelection
         public static bool CanManipulate(this Pawn pawn) =>
             (pawn.RaceProps?.ToolUser ?? false) && (pawn.health?.capacities?.CapableOf(PawnCapacityDefOf.Manipulation) ?? false);
 
-        public static bool HasFlag<T>(this T test, T value) where T : Enum
+        public static bool HasFlag<Enum>(this Enum test, Enum value)
         {
             if (test == null)
                 return false;

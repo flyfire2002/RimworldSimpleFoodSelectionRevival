@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>Simple Food Selection</name>
-  <author>AndHobbes</author>
+  <packageId>Flyfire2002.SimpleFoodSelection</packageId>
+  <name>Simple Food Selection [1.1]</name>
+  <author>flyfire2002</author>
   <supportedVersions>
-    <li>1.0</li>
+    <li>1.1</li>
   </supportedVersions>
   <description>
     Replaces the vanilla food searching algorithm with a better one.

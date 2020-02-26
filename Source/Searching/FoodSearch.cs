@@ -54,7 +54,7 @@ namespace SimpleFoodSelection.Searching
                 {   // foodTier e.g. Good/Bad/Desperate
                     if (!foodTier.ShouldUse(parameters.Eater))
                     {
-                        traceOutput?.AppendLine($"Not using food tier {foodTier.Name}, assuming others are worse and aborting here");
+                        traceOutput?.AppendLine($"Not using food tier {foodTier.Name}, assuming no food of acceptable tier is available.");
                         return new FoodSearchResult { Success = true };
                     }
 

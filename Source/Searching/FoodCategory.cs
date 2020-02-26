@@ -39,8 +39,9 @@ namespace SimpleFoodSelection.Searching
     {
         public static FoodCategory DetermineFoodCategory(this Thing thing)
         {
-            if (thing is Building_NutrientPasteDispenser nutrientPasteDispenser)
+            if (thing is Building_NutrientPasteDispenser)
             {
+                var nutrientPasteDispenser = (Building_NutrientPasteDispenser)thing;
                 return DetermineFoodCategory(nutrientPasteDispenser.DispensableDef);
             }
 
@@ -76,10 +77,7 @@ namespace SimpleFoodSelection.Searching
 
                 if (foodPref == FoodPreferability.MealSimple)
                 {
-                    if (def == ThingDefOf.MealSurvivalPack || def == ThingDefOf.Pemmican)
-                        return FoodCategory.MealSurvival;
-
-                    return FoodCategory.MealSimple;
+                    return (def == ThingDefOf.MealSurvivalPack || def == ThingDefOf.Pemmican) ? FoodCategory.MealSurvival : FoodCategory.MealSimple;
                 }
 
                 if (foodPref == FoodPreferability.MealLavish)

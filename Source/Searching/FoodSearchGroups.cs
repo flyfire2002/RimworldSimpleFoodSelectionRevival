@@ -35,7 +35,7 @@ namespace SimpleFoodSelection.Searching
 
                     yield break;
                 }
-
+                // Lazy fill groups
                 if (getter.IsPlayerFaction() || getter.IsGuest())
                 {
                     foreach (var group in GetColonistGroups())
@@ -45,7 +45,6 @@ namespace SimpleFoodSelection.Searching
                     }
                     yield break;
                 }
-
                 // Else, wild/other
                 foreach (var group in GetWildGroups())
                 {
@@ -66,7 +65,7 @@ namespace SimpleFoodSelection.Searching
         {
             yield return GetInventoryItems().ToArray();
 
-            var mapFoods = GetFoods(getter.Map.listerThings.AllThings, getter.Position).ToArray();
+            var mapFoods = GetMapItems().ToArray();
             var homeArea = getter.Map.areaManager.Home;
 
             yield return mapFoods.Where(x => homeArea[x.Position]).ToArray();

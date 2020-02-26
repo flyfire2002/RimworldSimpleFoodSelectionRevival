@@ -60,8 +60,7 @@ namespace SimpleFoodSelection.Searching
         {
             get
             {
-                if (FoodCategory == FoodCategory.Null
-                    || FoodCategory == FoodCategory.Ignore)
+                if (FoodCategory == FoodCategory.Null || FoodCategory == FoodCategory.Ignore)
                 {
                     // Excluded by categorization algorithm
                     return false;

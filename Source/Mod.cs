@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using SimpleFoodSelection.Patches;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace SimpleFoodSelection
     {
         static Mod()
         {
-            var harmony = HarmonyInstance.Create(ModName);
+            var harmony = new Harmony(ModName);
 
             FoodUtility_BestFoodSourceOnMap.Patch(harmony);
             FoodUtility_TryFindBestFoodSourceFor.Patch(harmony);

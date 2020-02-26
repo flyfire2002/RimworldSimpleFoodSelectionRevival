@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using SimpleFoodSelection.Searching;
 using System;
@@ -11,7 +11,7 @@ namespace SimpleFoodSelection.Patches
 {
     public static class FoodUtility_TryFindBestFoodSourceFor
     {
-        public static void Patch(HarmonyInstance harmony)
+        public static void Patch(Harmony harmony)
         {
             harmony.Patch(
                 original: typeof(FoodUtility).GetMethod("TryFindBestFoodSourceFor"),
