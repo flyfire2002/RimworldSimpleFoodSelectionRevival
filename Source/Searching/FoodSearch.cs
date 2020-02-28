@@ -30,7 +30,7 @@ namespace SimpleFoodSelection.Searching
             this.traceOutput = traceOutput;
         }
 
-        private readonly StringBuilder traceOutput = new StringBuilder();
+        private readonly StringBuilder traceOutput = null;
 
         private readonly FoodSearchParameters parameters;
         private readonly FoodSearchGroups foodSearchGroups;
